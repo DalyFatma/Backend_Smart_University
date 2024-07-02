@@ -1,7 +1,7 @@
 const classeDao = require("../../dao/ClasseDao/ClasseDao");
 const Classe = require("../../models/ClasseModels/ClasseModels");
 const ClasseModels = require("../../models/ClasseModels/ClasseModels");
-const MatiereModel = require("../../models/MatiereModel/MatiereModel");
+const Matiere = require("../../models/MatiereModel/MatiereModel");
 
 const createClasse = async (userData) => {
   try {
@@ -33,12 +33,39 @@ const getClasses = async () => {
 
 const deleteClasseById = async (id) => {
   try {
-    return await classeDao.deleteClasse(id);
+    console.log(`Attempting to delete classe with ID: ${id}`);
+
+    // Delete the classe by its ID
+    const deletedClasse = await classeDao.deleteClasse(id);
+
+    if (!deletedClasse) {
+      console.log(`Classe with ID ${id} not found`);
+      throw new Error("Classe not found");
+    }
+
+    console.log(`Classe with ID ${id} deleted successfully`);
+
+    // Update the matieres to remove the deleted classe from the classes array
+    const updateResult = await Matiere.updateMany(
+      { classes: id },
+      { $pull: { classes: id } }
+    );
+
+    console.log("Update result:", updateResult);
+    if (updateResult.modifiedCount === 0) {
+      console.warn(`No matieres were updated to remove the deleted classe ID ${id}`);
+    }
+
+    return deletedClasse;
   } catch (error) {
-    console.error("Error deleting classe:", error);
+    console.error("Error deleting classe and updating matieres:", error);
     throw error;
   }
 };
+
+
+
+
 async function assignMatieresToClasse(classeId, matiereIds) {
   try {
     const updatedClasse = await classeDao.assignMatieresToClasse(classeId, matiereIds);
@@ -51,6 +78,13 @@ async function assignMatieresToClasse(classeId, matiereIds) {
 }
 
 
+async function getAssignedMatieres(classeId) {
+  try {
+    return await classeDao.getAssignedMatieres(classeId);
+  } catch (error) {
+    throw new Error(`Error fetching assigned matieres: ${error.message}`);
+  }
+}
 
 module.exports = {
   createClasse,
@@ -59,5 +93,6 @@ module.exports = {
   getClasses,
   deleteClasseById,
   assignMatieresToClasse,
+  getAssignedMatieres
 
 };

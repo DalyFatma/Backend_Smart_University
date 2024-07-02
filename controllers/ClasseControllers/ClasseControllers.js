@@ -82,6 +82,7 @@ const getAllClasses = async (req, res) => {
 const deleteClasseById = async (req, res) => {
   try {
     const classeId = req.params.id;
+    console.log(`Received request to delete classe with ID: ${classeId}`);
 
     const deletedClasse = await classeService.deleteClasseById(classeId);
 
@@ -89,18 +90,13 @@ const deleteClasseById = async (req, res) => {
       return res.status(404).send("Classe not found");
     }
 
-    const updateResult = await Matiere.updateMany(
-      { classes: classeId },
-      { $pull: { classes: classeId } }
-    );
-
-    console.log("Update result:", updateResult);
-    res.sendStatus(200);
+    res.status(200).json({ message: "Classe deleted successfully", data: deletedClasse });
   } catch (error) {
-    console.error(error);
+    console.error("Error in deleteClasseById controller:", error);
     res.status(500).send(error.message);
   }
 };
+
 
 async function assignMatieresToClasseController(req, res, next) {
   const classeId = req.params.classeId;
@@ -133,6 +129,18 @@ async function deleteAssignedMatiereFromClasse(req, res) {
 }
 
 
+async function getAssignedMatieres(req, res) {
+  const { classeId } = req.params;
+
+  try {
+    const matieres = await classeService.getAssignedMatieres(classeId);
+    res.json(matieres);
+  } catch (error) {
+    console.error('Error fetching assigned matieres:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
+
 module.exports = {
   addClasse,
   updateClasseById,
@@ -140,5 +148,6 @@ module.exports = {
   getAllClasses,
   deleteClasseById,
   assignMatieresToClasseController,
-  deleteAssignedMatiereFromClasse
+  deleteAssignedMatiereFromClasse,
+  getAssignedMatieres
 };

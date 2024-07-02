@@ -17,7 +17,7 @@ const getClasses = async () => {
       .populate("departement")
       .populate("niveau_classe")
       .populate("section_classe")
-      .populate("matieres");;
+      .populate("matieres");
   } catch (error) {
     console.error("Error fetching classes:", error);
     throw error;
@@ -31,7 +31,7 @@ const updateClasse = async (id, updateData) => {
       .populate("departement")
       .populate("niveau_classe")
       .populate("section_classe")
-      .populate("matieres");;
+      .populate("matieres");
   } catch (error) {
     console.error("Error updating classe:", error);
     throw error;
@@ -88,33 +88,41 @@ async function assignMatieresToClasse(classeId, matiereIds) {
 
 async function deleteAssignedMatiereFromClasse(classeId, matiereId) {
   try {
-    // Find the classe by ID
     const classe = await Classe.findById(classeId);
-
-    // Throw error if classe is not found
     if (!classe) {
       throw new Error("Classe not found");
     }
-
-    // Remove matiereId from the matieres array of the classe
-    classe.matieres = classe.matieres.filter(m => m.toString() !== matiereId);
+    classe.matieres = classe.matieres.filter((m) => m.toString() !== matiereId);
     await classe.save();
-
-    // Find the matiere by ID
     const matiere = await MatiereModel.findById(matiereId);
-
-    // If matiere exists, remove classeId from its classes array
     if (matiere) {
-      matiere.classes = matiere.classes.filter(c => c.toString() !== classeId);
+      matiere.classes = matiere.classes.filter(
+        (c) => c.toString() !== classeId
+      );
       await matiere.save();
     }
-
-    // Return updated classe
     return classe;
   } catch (error) {
-    throw new Error(`Error deleting assigned matiere from classe: ${error.message}`);
+    throw new Error(
+      `Error deleting assigned matiere from classe: ${error.message}`
+    );
   }
 }
+
+
+async function getAssignedMatieres(classeId) {
+  try {
+    const classe = await Classe.findById(classeId).populate('matieres');
+    if (!classe) {
+      throw new Error("Classe not found");
+    }
+    return classe.matieres;
+  } catch (error) {
+    throw new Error(`Error fetching assigned matieres: ${error.message}`);
+  }
+}
+
+
 
 module.exports = {
   createClasse,
@@ -123,5 +131,6 @@ module.exports = {
   deleteClasse,
   getClasseById,
   assignMatieresToClasse,
-  deleteAssignedMatiereFromClasse
+  deleteAssignedMatiereFromClasse,
+  getAssignedMatieres
 };

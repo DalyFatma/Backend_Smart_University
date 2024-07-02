@@ -1,4 +1,5 @@
 const matiereDao = require("../../dao/MatiereDao/MatiereDao");
+const Classe =require("../../models/ClasseModels/ClasseModels")
 
 const registerMatiere = async (userData) => {
  
@@ -19,8 +20,33 @@ const getMatieresDao = async () => {
 };
 
 const deleteMatiereDao = async (id) => {
-  return await matiereDao.deleteMatiere(id)
+  try {
+    console.log(`Attempting to delete matiere with ID: ${id}`);
+    const deletedMatiere = await matiereDao.deleteMatiere(id);
+
+    if (!deletedMatiere) {
+      console.log(`Matiere with ID ${id} not found`);
+      throw new Error("Matiere not found");
+    }
+
+    console.log(`Matiere with ID ${id} deleted successfully`);
+    const updateResult = await Classe.updateMany(
+      { matieres: id },
+      { $pull: { matieres: id } }
+    );
+
+    console.log("Update result:", updateResult);
+    if (updateResult.modifiedCount === 0) {
+      console.warn(`No classes were updated to remove the deleted matiere ID ${id}`);
+    }
+
+    return deletedMatiere;
+  } catch (error) {
+    console.error("Error deleting matiere and updating classes:", error);
+    throw error;
+  }
 };
+
 
 
 

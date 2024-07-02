@@ -10,4 +10,5 @@ router.get('/get-all-classe', classeController.getAllClasses);
 router.delete('/delete-classe/:id', classeController.deleteClasseById);
 router.put('/assign-matieres-to-classe/:classeId',classeController.assignMatieresToClasseController);
 router.delete('/delete-assigned-matiere/:classeId/:matiereId', classeController.deleteAssignedMatiereFromClasse);
+router.get('/:classeId/matieres', classeController.getAssignedMatieres);
 module.exports = router;
